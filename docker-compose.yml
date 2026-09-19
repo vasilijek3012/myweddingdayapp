@@ -1,0 +1,18 @@
+# Redis only — Postgres, the backend, and the web app all still run manually as documented
+# in CLAUDE.md. This exists purely to give local dev a Redis instance for caching, rate
+# limiting, and JWT revocation without asking you to install Redis natively on Windows.
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: myweddingday-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+volumes:
+  redis-data:

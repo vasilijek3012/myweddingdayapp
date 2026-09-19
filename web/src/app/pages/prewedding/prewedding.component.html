@@ -1,0 +1,42 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ 'prewedding.title' | translate }}</h1>
+    <p>{{ 'prewedding.subtitle' | translate }}</p>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [placeholder]="'common.search' | translate"
+      [value]="searchTerm"
+      (input)="onSearch($any($event.target).value)"
+      class="search-input"
+    />
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && venues.length === 0" class="empty-state">
+    <p>{{ 'common.noResults' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && venues.length > 0" class="venues-grid">
+    <a *ngFor="let venue of venues" [routerLink]="['/venue', venue.id]" class="venue-card">
+      <div class="venue-image">
+        <img [src]="venue.image_url || 'assets/placeholder.jpg'" [alt]="venue.name" />
+        <span *ngIf="venue.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+      </div>
+      <div class="venue-info">
+        <h3>{{ venue.name }}</h3>
+        <p class="venue-city">📍 {{ venue.city }}</p>
+        <p *ngIf="venue.capacity" class="venue-capacity">👥 {{ 'common.guests' | translate:{ n: venue.capacity } }}</p>
+        <p *ngIf="venue.base_price" class="venue-price">{{ 'common.from' | translate:{ n: venue.base_price } }}</p>
+        <p class="venue-description">{{ (venue.description || '') | slice:0:100 }}{{ (venue.description || '').length > 100 ? '...' : '' }}</p>
+      </div>
+    </a>
+  </div>
+</div>

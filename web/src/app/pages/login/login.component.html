@@ -1,0 +1,38 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>{{ 'login.title' | translate }}</h1>
+    <p class="auth-subtitle">{{ 'login.subtitle' | translate }}</p>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <div class="form-group">
+        <label for="email">{{ 'login.email' | translate }}</label>
+        <input id="email" type="email" formControlName="email" [placeholder]="'login.emailPlaceholder' | translate" />
+        <span class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+          {{ 'login.emailError' | translate }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">{{ 'login.password' | translate }}</label>
+        <input id="password" type="password" formControlName="password" [placeholder]="'login.passwordPlaceholder' | translate" />
+        <span class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+          {{ 'login.passwordError' | translate }}
+        </span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+        {{ (loading ? 'login.loading' : 'login.submit') | translate }}
+      </button>
+    </form>
+
+    <div class="auth-divider">{{ 'auth.orDivider' | translate }}</div>
+    <app-google-sign-in-button (success)="onGoogleSuccess()" (authError)="onGoogleError($event)"></app-google-sign-in-button>
+
+    <p class="auth-switch">
+      {{ 'login.noAccount' | translate }}
+      <a routerLink="/register">{{ 'login.registerLink' | translate }}</a>
+    </p>
+  </div>
+</div>

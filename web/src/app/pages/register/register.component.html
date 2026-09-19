@@ -1,0 +1,74 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>{{ 'register.title' | translate }}</h1>
+    <p class="auth-subtitle">{{ 'register.subtitle' | translate }}</p>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <div class="form-group">
+        <label for="full_name">{{ 'register.fullName' | translate }}</label>
+        <input id="full_name" type="text" formControlName="full_name" [placeholder]="'register.fullName' | translate" />
+        <span class="field-error" *ngIf="form.get('full_name')?.touched && form.get('full_name')?.invalid">
+          {{ 'register.nameError' | translate }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="email">{{ 'register.email' | translate }}</label>
+        <input id="email" type="email" formControlName="email" [placeholder]="'login.emailPlaceholder' | translate" />
+        <span class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+          {{ 'register.emailError' | translate }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">{{ 'register.password' | translate }}</label>
+        <input id="password" type="password" formControlName="password" [placeholder]="'register.passwordHint' | translate" />
+        <span class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+          {{ 'register.passwordError' | translate }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>{{ 'register.roleLabel' | translate }}</label>
+        <div class="role-selector">
+          <label class="role-option" [class.selected]="form.get('role')?.value === 'visitor'">
+            <input type="radio" formControlName="role" value="visitor" />
+            <span class="role-icon">👤</span>
+            <span class="role-label">{{ 'register.visitorLabel' | translate }}</span>
+            <span class="role-desc">{{ 'register.visitorDesc' | translate }}</span>
+          </label>
+          <label class="role-option" [class.selected]="form.get('role')?.value === 'owner'">
+            <input type="radio" formControlName="role" value="owner" />
+            <span class="role-icon">🏛️</span>
+            <span class="role-label">{{ 'register.ownerLabel' | translate }}</span>
+            <span class="role-desc">{{ 'register.ownerDesc' | translate }}</span>
+          </label>
+          <label class="role-option" [class.selected]="form.get('role')?.value === 'band'">
+            <input type="radio" formControlName="role" value="band" />
+            <span class="role-icon">🎸</span>
+            <span class="role-label">{{ 'register.bandLabel' | translate }}</span>
+            <span class="role-desc">{{ 'register.bandDesc' | translate }}</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+        {{ (loading ? 'register.loading' : 'register.submit') | translate }}
+      </button>
+    </form>
+
+    <div class="auth-divider">{{ 'auth.orDivider' | translate }}</div>
+    <app-google-sign-in-button
+      [role]="form.get('role')?.value"
+      (success)="onGoogleSuccess()"
+      (authError)="onGoogleError($event)">
+    </app-google-sign-in-button>
+
+    <p class="auth-switch">
+      {{ 'register.hasAccount' | translate }}
+      <a routerLink="/login">{{ 'register.loginLink' | translate }}</a>
+    </p>
+  </div>
+</div>

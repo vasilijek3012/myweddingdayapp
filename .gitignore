@@ -1,0 +1,9 @@
+# Local AI tool config — not meant for a public/shared repo
+.claude/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Defensive — backend/ and web/ have their own more specific .gitignore files
+node_modules/

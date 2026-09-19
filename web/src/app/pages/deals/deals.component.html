@@ -1,0 +1,54 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ 'deals.title' | translate }}</h1>
+    <p>{{ 'deals.subtitle' | translate }}</p>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [placeholder]="'common.search' | translate"
+      [value]="searchTerm"
+      (input)="onSearch($any($event.target).value)"
+      class="search-input"
+    />
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <div class="deal-filters">
+    <button type="button" class="filter-chip" [class.active]="isActiveType('wedding')" (click)="toggleType('wedding')">
+      🏛️ {{ 'dashboard.typeWedding' | translate }}
+    </button>
+    <button type="button" class="filter-chip" [class.active]="isActiveType('prewedding')" (click)="toggleType('prewedding')">
+      🥂 {{ 'dashboard.typePrewedding' | translate }}
+    </button>
+    <button type="button" class="filter-chip" [class.active]="isActiveType('band')" (click)="toggleType('band')">
+      🎸 {{ 'nav.bands' | translate }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && deals.length === 0" class="empty-state">
+    <p>{{ 'common.noResults' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && deals.length > 0" class="venues-grid">
+    <a *ngFor="let deal of deals" [routerLink]="linkFor(deal)" class="venue-card">
+      <div class="venue-image">
+        <img [src]="deal.image_url || 'assets/placeholder.jpg'" [alt]="deal.name" />
+        <span *ngIf="deal.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+      </div>
+      <div class="venue-info">
+        <span class="venue-type-badge small">{{ typeLabel(deal.kind) | translate }}</span>
+        <h3>{{ deal.name }}</h3>
+        <p class="venue-city">📍 {{ deal.city }}</p>
+        <p *ngIf="deal.price" class="venue-price">{{ 'common.from' | translate:{ n: deal.price } }}</p>
+        <p class="venue-description">{{ (deal.description || '') | slice:0:100 }}{{ (deal.description || '').length > 100 ? '...' : '' }}</p>
+      </div>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<section class="info-section reviews-section">
+  <h2>
+    {{ 'reviews.title' | translate }}
+    <span class="reviews-summary" *ngIf="count > 0">★ {{ average | number:'1.1-1' }} ({{ count }})</span>
+  </h2>
+
+  <div class="review-form" *ngIf="auth.isLoggedIn; else loginPrompt">
+    <div class="star-picker">
+      <span
+        *ngFor="let s of stars"
+        class="star"
+        [class.filled]="(hoverRating || ratingInput) >= s"
+        (mouseenter)="hoverRating = s"
+        (mouseleave)="hoverRating = 0"
+        (click)="setRating(s)">★</span>
+    </div>
+    <textarea
+      [(ngModel)]="commentInput"
+      [placeholder]="'reviews.commentPlaceholder' | translate"
+      rows="3">
+    </textarea>
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div class="review-form-actions">
+      <button class="btn btn-primary" [disabled]="ratingInput < 1 || saving" (click)="submit()">
+        {{ (myReview ? 'reviews.update' : 'reviews.submit') | translate }}
+      </button>
+      <button class="btn btn-outline" *ngIf="myReview" (click)="deleteMine()">{{ 'dashboard.delete' | translate }}</button>
+    </div>
+  </div>
+  <ng-template #loginPrompt>
+    <p class="muted login-prompt">
+      <a routerLink="/login" [queryParams]="{ returnUrl: returnUrl }">{{ 'reviews.loginLink' | translate }}</a>
+      {{ 'reviews.loginPrompt' | translate }}
+    </p>
+  </ng-template>
+
+  <div class="reviews-list" *ngIf="!loading">
+    <p class="muted" *ngIf="reviews.length === 0">{{ 'reviews.noReviews' | translate }}</p>
+    <div class="review-card" *ngFor="let r of reviews">
+      <div class="review-card-header">
+        <strong>{{ r.user_name }}</strong>
+        <span class="review-stars">{{ '★'.repeat(r.rating) }}</span>
+      </div>
+      <p>{{ r.comment }}</p>
+    </div>
+  </div>
+</section>

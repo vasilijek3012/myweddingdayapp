@@ -1,0 +1,103 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ 'venue.notFound' | translate }}</p>
+    <a routerLink="/" class="btn btn-outline">{{ 'common.backHome' | translate }}</a>
+  </div>
+
+  <ng-container *ngIf="!loading && venue">
+    <button class="back-btn" onclick="history.back()">{{ 'common.back' | translate }}</button>
+
+    <div class="venue-detail">
+      <div class="venue-hero">
+        <img [src]="venue.image_url || 'assets/placeholder.jpg'" [alt]="venue.name" class="venue-hero-img" />
+        <div class="venue-hero-overlay">
+          <span class="venue-type-badge">
+            {{ (venue.type === 'wedding' ? 'venue.wedding' : 'venue.prewedding') | translate }}
+          </span>
+          <span *ngIf="venue.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+          <h1>{{ venue.name }}</h1>
+          <p class="venue-city-detail">📍 {{ venue.address }}, {{ venue.city }}</p>
+        </div>
+      </div>
+
+      <div class="venue-body">
+        <div class="venue-main">
+          <section class="info-section">
+            <h2>{{ 'venue.about' | translate }}</h2>
+            <p>{{ venue.description }}</p>
+          </section>
+
+          <section class="info-section" *ngIf="venue.meal_plans && venue.meal_plans.length > 0">
+            <h2>{{ 'venue.mealPlans' | translate }}</h2>
+            <div class="meal-plans-list">
+              <div class="meal-plan-card" *ngFor="let plan of venue.meal_plans">
+                <div class="meal-plan-header">
+                  <h3>{{ plan.name }}</h3>
+                  <span class="meal-plan-price">{{ plan.price_per_person | number:'1.0-0' }} {{ 'venue.perPerson' | translate }}</span>
+                </div>
+                <p>{{ plan.description }}</p>
+                <span class="drinks-badge" *ngIf="plan.includes_drinks">{{ 'venue.drinksIncluded' | translate }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="info-section" *ngIf="!venue.meal_plans || venue.meal_plans.length === 0">
+            <h2>{{ 'venue.mealPlans' | translate }}</h2>
+            <p class="muted">{{ 'venue.noMealPlans' | translate }}</p>
+          </section>
+
+          <app-reviews-section [venueId]="venue.id"></app-reviews-section>
+        </div>
+
+        <aside class="venue-sidebar">
+          <div class="sidebar-card">
+            <h3>Инфо / Info</h3>
+            <ul class="info-list">
+              <li *ngIf="venue.capacity">
+                <span>👥 {{ 'venue.capacity' | translate }}</span>
+                <strong>{{ 'venue.capacityVal' | translate:{ n: venue.capacity } }}</strong>
+              </li>
+              <li *ngIf="venue.base_price">
+                <span>💰 {{ 'venue.basePrice' | translate }}</span>
+                <strong>{{ venue.base_price | number:'1.0-0' }} MKD</strong>
+              </li>
+              <li *ngIf="venue.phone">
+                <span>📞 {{ 'venue.phone' | translate }}</span>
+                <strong>{{ venue.phone }}</strong>
+              </li>
+              <li *ngIf="venue.website">
+                <span>🌐 {{ 'venue.website' | translate }}</span>
+                <a [href]="venue.website" target="_blank" rel="noopener">{{ 'venue.visitSite' | translate }}</a>
+              </li>
+              <li>
+                <span>👤 {{ 'venue.owner' | translate }}</span>
+                <strong>{{ venue.owner_name }}</strong>
+              </li>
+            </ul>
+          </div>
+
+          <div class="sidebar-card map-card">
+            <h3>{{ 'venue.location' | translate }}</h3>
+            <p class="address-text">{{ venue.address }}, {{ venue.city }}</p>
+            <iframe
+              *ngIf="mapEmbedUrl"
+              class="map-embed"
+              [src]="mapEmbedUrl"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen>
+            </iframe>
+            <a [href]="getGoogleMapsUrl()" target="_blank" rel="noopener" class="btn btn-primary btn-full">
+              {{ 'venue.openMaps' | translate }}
+            </a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </ng-container>
+</div>

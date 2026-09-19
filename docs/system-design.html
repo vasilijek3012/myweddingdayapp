@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MyWeddingDay — System Design Notes</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #1b2a41;
+    font-size: 11.5pt;
+    line-height: 1.5;
+  }
+  .cover {
+    height: 247mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover .kicker {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10pt;
+    color: #6c8fae;
+    margin-bottom: 14px;
+  }
+  .cover h1 {
+    font-family: 'Segoe UI Semibold', 'Segoe UI', Arial, sans-serif;
+    font-size: 30pt;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #16233a;
+  }
+  .cover .subtitle {
+    font-size: 13pt;
+    color: #5b6b7d;
+    max-width: 34em;
+    margin-bottom: 28px;
+  }
+  .cover .meta {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 9.5pt;
+    color: #5b6b7d;
+    border-top: 1px solid #d8dee6;
+    padding-top: 14px;
+    max-width: 30em;
+  }
+  .cover .meta div { margin-bottom: 4px; }
+  .cover .toc {
+    margin-top: 40px;
+    max-width: 30em;
+  }
+  .cover .toc h2 {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #a8792e;
+    margin-bottom: 10px;
+  }
+  .cover .toc ol { margin: 0; padding-left: 1.3em; color: #2e5c8a; }
+  .cover .toc li { margin-bottom: 4px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5pt; }
+
+  section.category { page-break-before: always; }
+  section.category:first-of-type { page-break-before: auto; }
+
+  h2.category-title {
+    font-family: 'Segoe UI Semibold', 'Segoe UI', Arial, sans-serif;
+    font-size: 20pt;
+    color: #16233a;
+    border-bottom: 2.5px solid #2e5c8a;
+    padding-bottom: 10px;
+    margin: 0 0 6px;
+  }
+  p.category-intro {
+    color: #5b6b7d;
+    font-style: italic;
+    margin: 0 0 22px;
+    max-width: 40em;
+  }
+
+  article.concept {
+    margin-bottom: 30px;
+    page-break-inside: avoid;
+  }
+  h3.concept-title {
+    font-family: 'Segoe UI Semibold', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5pt;
+    color: #2e5c8a;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h3.concept-title .num {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 10pt;
+    color: #a8792e;
+    font-weight: 400;
+  }
+
+  h4.block-label {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a8792e;
+    margin: 12px 0 4px;
+  }
+  p { margin: 0 0 8px; }
+  code {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 9.7pt;
+    background: #f0f3f7;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #16233a;
+  }
+  .files {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 9.3pt;
+    color: #2e5c8a;
+    background: #f4f6f8;
+    border-left: 3px solid #6c8fae;
+    padding: 8px 12px;
+    margin: 6px 0 10px;
+  }
+  .talking-point {
+    background: #fbf4e6;
+    border-left: 3px solid #a8792e;
+    padding: 10px 14px;
+    margin: 10px 0 4px;
+    font-size: 10.7pt;
+  }
+  .talking-point .tag {
+    font-family: 'Segoe UI Semibold', 'Segoe UI', Arial, sans-serif;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a8792e;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .tradeoff {
+    background: #eef3f8;
+    border-left: 3px solid #2e5c8a;
+    padding: 10px 14px;
+    margin: 10px 0 4px;
+    font-size: 10.3pt;
+  }
+  .tradeoff .tag {
+    font-family: 'Segoe UI Semibold', 'Segoe UI', Arial, sans-serif;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #2e5c8a;
+    display: block;
+    margin-bottom: 4px;
+  }
+  table.summary {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.3pt;
+    margin: 8px 0 4px;
+  }
+  table.summary th, table.summary td {
+    text-align: left;
+    padding: 5px 8px;
+    border-bottom: 1px solid #e2e8ee;
+    vertical-align: top;
+  }
+  table.summary th {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6c8fae;
+    border-bottom: 1.5px solid #6c8fae;
+  }
+  table.summary code { white-space: nowrap; }
+
+  .closing p { max-width: 46em; }
+  .closing blockquote {
+    font-style: italic;
+    color: #2e5c8a;
+    border-left: 3px solid #a8792e;
+    padding: 4px 0 4px 16px;
+    margin: 14px 0;
+  }
+  footer.page-footer {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 8pt;
+    color: #9fb0c4;
+    text-align: center;
+    margin-top: 30px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MyWeddingDay · Engineering Notes</div>
+  <h1>System Design Concepts<br>Behind This Project</h1>
+  <p class="subtitle">
+    A wedding/pre-wedding/band-booking marketplace (Angular + Express + PostgreSQL) that started
+    as a straightforward CRUD app and had a deliberate second pass added: caching, reliability
+    patterns, observability, and a handful of architecture decisions worth being able to explain
+    out loud. This document is the "why," with exact file references for the "where."
+  </p>
+  <div class="meta">
+    <div>STACK &nbsp; Angular 19 · Express · PostgreSQL 16 · Redis 7</div>
+    <div>SCOPE &nbsp; Caching · Reliability · Observability · Architecture</div>
+    <div>PURPOSE &nbsp; Interview-ready talking points, grounded in real running code</div>
+  </div>
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li>Caching &amp; Redis</li>
+      <li>Reliability</li>
+      <li>Observability</li>
+      <li>Architecture talking points</li>
+      <li>How to talk about this in an interview</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ================= CACHING ================= -->
+<section class="category">
+  <h2 class="category-title">1 · Caching &amp; Redis</h2>
+  <p class="category-intro">
+    Redis is optional infrastructure everywhere it's used here — every helper degrades to "just
+    hit Postgres" if Redis is unset or unreachable. That degradation is itself the first talking
+    point: a cache should never be a single point of failure for correctness, only for speed.
+  </p>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">1.1</span> Cache-aside pattern</h3>
+    <p>
+      On a read, check Redis first. Miss → query Postgres, write the result into Redis with a
+      TTL, then return it. On a write, invalidate the affected keys directly instead of waiting
+      for the TTL. This is the most common caching pattern in real systems (as opposed to
+      write-through or write-behind) because the application stays in full control of what gets
+      cached and for how long, and a cache outage just means every request falls through to the
+      database — slower, not broken.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      Applied to the four public read endpoints most likely to be hit repeatedly:
+      <code>GET /api/venues</code>, <code>/api/venues/:id</code>, <code>/api/bands</code>,
+      <code>/api/bands/:id</code>, and <code>GET /api/reviews</code>. 30-second TTL. Every write
+      endpoint (create/update/delete venue or band, post/edit/delete a review, the Stripe webhook
+      completing a payment) explicitly deletes the relevant cache keys rather than relying on the
+      TTL alone — the TTL exists as a safety net for any invalidation path that gets missed, not
+      as the primary consistency mechanism.
+    </p>
+    <div class="files">
+      backend/src/config/redis.js — cacheGet / cacheSet / cacheInvalidate<br>
+      backend/src/routes/venues.js, bands.js, reviews.js — wired into each GET/write handler<br>
+      Responses carry an <code>X-Cache: HIT</code> / <code>MISS</code> header — directly observable, not just claimed
+    </div>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "I used cache-aside instead of write-through because the read/write ratio here is
+      read-heavy and skewed toward a handful of popular listings — cache-aside means only data
+      that's actually being read gets cached, rather than paying the cache-write cost on every
+      write regardless of whether it's ever read again."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">1.2</span> Rate limiting</h3>
+    <p>
+      A fixed-window counter per client (here: per IP) stored in Redis, shared across however
+      many backend instances are running — the entire reason to centralize this in Redis instead
+      of an in-memory `Map` is that in-memory counting is per-instance, so a client could bypass
+      a single instance's limit just by hitting a different one behind the load balancer.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>express-rate-limit</code> with a <code>rate-limit-redis</code> store. 20 requests /
+      15 minutes on <code>/api/auth/register</code>, <code>/login</code>, <code>/google</code>
+      (the classic brute-force targets); 20 requests / minute on <code>POST /api/reviews</code>
+      and <code>POST /api/payments/checkout</code> (cheap-to-spam write endpoints). Falls back to
+      the library's built-in in-memory store if <code>REDIS_URL</code> isn't set.
+    </p>
+    <div class="files">backend/src/middleware/rateLimit.js</div>
+    <div class="tradeoff">
+      <span class="tag">Tradeoff discussed</span>
+      Fixed-window counters are simple but allow a burst of up to 2× the limit right at a window
+      boundary (e.g. 20 requests in the last second of one window, 20 more in the first second of
+      the next). A sliding-window or token-bucket algorithm avoids that at the cost of a slightly
+      more complex Redis data structure (a sorted set instead of a single counter key). Named
+      here as a known, deliberate simplification — not something I didn't think about.
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">1.3</span> JWT revocation (session management)</h3>
+    <p>
+      JWTs are stateless by design — the whole appeal is that any server can verify one without a
+      database lookup. The cost is that they're also <em>unrevokable</em> by design: a stolen or
+      logged-out token stays valid until it naturally expires, because there's nothing to "delete."
+      This app's JWTs last 7 days, so that's a real gap.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      Every signed token gets a random <code>jti</code> (JWT ID) claim. <code>POST /api/auth/logout</code>
+      writes <code>revoked:jwt:&lt;jti&gt;</code> into Redis with a TTL equal to the token's
+      remaining lifetime (no point keeping it around after the token would've expired anyway).
+      The <code>authenticate</code> middleware checks that key on every request before trusting
+      the token.
+    </p>
+    <div class="files">
+      backend/src/routes/auth.js — signToken() adds jti, POST /logout blacklists it<br>
+      backend/src/middleware/auth.js — checks the blacklist<br>
+      web/src/app/core/services/auth.service.ts — logout() calls it (best-effort)
+    </div>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "This is a hybrid approach — I kept JWTs stateless for the common case (no DB/Redis hit on
+      every authenticated request), but added a small piece of shared state specifically for the
+      one thing pure JWTs can't do: revocation. It's the same idea as a refresh-token denylist,
+      just scoped to the access token itself since this app doesn't have separate refresh tokens."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">1.4</span> Fail open vs. fail closed</h3>
+    <p>
+      Two Redis-backed features in this app, two different failure postures, on purpose:
+    </p>
+    <table class="summary">
+      <tr><th>Feature</th><th>If Redis is down</th><th>Why</th></tr>
+      <tr><td>Cache-aside</td><td><b>Fails open</b> — falls through to Postgres</td><td>A cache miss is just slower, never wrong</td></tr>
+      <tr><td>Rate limiting</td><td><b>Fails closed</b>-ish — request errors rather than silently un-limiting</td><td>Silently disabling abuse protection when its store disappears defeats the purpose of having it</td></tr>
+    </table>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "Not every dependency failure should be handled the same way — it depends what the
+      dependency is protecting. I made that decision explicit and different in two places in the
+      same codebase, rather than defaulting to one policy everywhere."
+    </div>
+  </article>
+</section>
+
+<!-- ================= RELIABILITY ================= -->
+<section class="category">
+  <h2 class="category-title">2 · Reliability</h2>
+  <p class="category-intro">
+    This app talks to two real third-party dependencies (Stripe, Google) and has one real
+    money-moving endpoint (checkout). Reliability here means: don't double-charge, don't cascade
+    a dependency's outage into this app's own outage, and don't lose the ability to change the
+    schema safely once there's real data in it.
+  </p>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">2.1</span> Idempotency keys</h3>
+    <p>
+      A double-click, a slow network causing a client retry, or a proxy replaying a request
+      should never create two Stripe Checkout Sessions (and, downstream, two payment attempts)
+      for the same intent. An idempotency key lets the payment provider recognize "I've seen this
+      exact request before" and return the original result instead of doing the action again.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      Passed straight through to Stripe's own <code>idempotencyKey</code> option, built from the
+      specific pending <code>Payments</code> row's id — so it's unique per checkout attempt and
+      can never collide across users or listings, and a client-supplied
+      <code>Idempotency-Key</code> header is honored if present.
+    </p>
+    <div class="files">backend/src/routes/payments.js</div>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "Idempotency matters most exactly where money moves. I didn't build a generic idempotency
+      framework for every endpoint — I used the payment provider's own native support where it
+      exists, which is simpler and more correct than reinventing it."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">2.2</span> Circuit breaker</h3>
+    <p>
+      When a downstream dependency starts failing, the naive behavior — keep calling it, wait for
+      each timeout — makes things worse: requests pile up holding connections/threads open,
+      latency climbs everywhere, and the caller can tip over even though its own code is fine.
+      A circuit breaker tracks recent failures and, once a threshold is crossed, "opens": further
+      calls fail immediately (no network call at all) for a cooldown period, then allows one
+      trial call through to check for recovery (half-open) before fully closing again.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>opossum</code>, wrapping two calls: Stripe's <code>checkout.sessions.create</code> and
+      Google's <code>verifyIdToken</code>. The Google one needed an extra refinement — most calls
+      to <code>verifyIdToken</code> that fail do so because the token itself is invalid or
+      expired, which is normal, expected, high-frequency traffic, <em>not</em> a sign Google's
+      servers are unhealthy. Counting those toward the breaker would trip it from ordinary user
+      error and lock out Google Sign-In for everyone. Opossum's <code>errorFilter</code> option
+      solves this: only errors that look like genuine network failures
+      (<code>ECONNREFUSED</code>, timeouts, etc.) count toward opening the breaker.
+    </p>
+    <div class="files">
+      backend/src/utils/circuitBreaker.js — shared factory, wires up open/half-open/close logging<br>
+      backend/src/config/google.js — errorFilter distinguishing network faults from bad tokens<br>
+      backend/src/routes/payments.js — wraps the Stripe call, returns 503 while open
+    </div>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "The interesting part wasn't wrapping the call — that's one line. It was realizing that a
+      naive circuit breaker on the Google verification call would be actively harmful, because
+      the overwhelming majority of its failures are expected user-side errors, not Google being
+      down. Filtering which errors count is what makes it correct instead of just present."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">2.3</span> Schema migrations</h3>
+    <p>
+      Ad-hoc <code>CREATE TABLE IF NOT EXISTS</code> on every boot is fine for a solo hobby
+      project with no production data yet, but it has no concept of "change an existing column,"
+      no history of what changed when, and no rollback. A migrations tool tracks a linear,
+      versioned, reversible history of schema changes as code.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>node-pg-migrate</code>, with four migration files mirroring this project's actual
+      schema history: initial tables → add Google auth columns → add Reviews → add Payments. Each
+      has a working <code>down</code> (verified by actually running it against a throwaway
+      database, not just written and assumed correct). Local dev is intentionally untouched —
+      <code>database.js</code>'s auto-create-on-boot still exists, so <code>npm run dev</code>
+      needs no extra step. The migrations are the production-grade path: point a fresh database
+      (e.g. a new Railway Postgres instance) at <code>npm run migrate:up</code> instead of ever
+      booting the app against it directly.
+    </p>
+    <div class="files">
+      backend/migrations/*.js<br>
+      backend/scripts/migrate.js — builds a connection string from the existing DB_* env vars<br>
+      npm run migrate:up / migrate:down / migrate:create
+    </div>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "I kept both approaches deliberately, for different audiences — auto-create-on-boot for
+      zero-friction local dev, and real versioned migrations for anything that looks like
+      production. That's a conscious call about who each mechanism is for, not indecision."
+    </div>
+  </article>
+</section>
+
+<!-- ================= OBSERVABILITY ================= -->
+<section class="category">
+  <h2 class="category-title">3 · Observability</h2>
+  <p class="category-intro">
+    "It works on my machine" doesn't answer "why did request X fail at 2am for user Y" — that
+    needs logs you can search, errors you get paged for, and metrics you can graph. Three
+    different tools because they answer three different questions.
+  </p>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">3.1</span> Structured logging</h3>
+    <p>
+      <code>console.log("Get venues error:", err)</code> produces a line of text a human can read
+      in a terminal and a log aggregator basically cannot query. Structured logging emits JSON —
+      each field (error message, request id, route, user id) is independently searchable and
+      alertable once shipped to something like Datadog, CloudWatch, or Loki.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>pino</code> — chosen over <code>winston</code> for being one of the fastest structured
+      loggers for Node (matters on a hot path like a request handler), JSON in production,
+      pretty-printed and colorized in dev via <code>pino-pretty</code> so it's still readable
+      locally. <code>pino-http</code> auto-logs every request/response with duration and status.
+      Every <code>console.error</code>/<code>console.log</code> in the backend replaced.
+    </p>
+    <div class="files">backend/src/config/logger.js — used throughout backend/src/routes/*.js</div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">3.2</span> Error tracking</h3>
+    <p>
+      Logs answer "what happened" if you already know where to look. Error tracking answers
+      "something just broke in production" before a user has to report it — it groups repeated
+      occurrences of the same error, captures the stack trace and request context automatically,
+      and can page someone.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>@sentry/node</code>, initialized before Express even exists so it can auto-instrument
+      from the start, with <code>Sentry.setupExpressErrorHandler(app)</code> registered after all
+      routes. Entirely inert — zero calls to Sentry's servers — unless <code>SENTRY_DSN</code> is
+      set, matching the same "safe until configured" pattern already used for Stripe and Google
+      in this codebase.
+    </p>
+    <div class="files">backend/src/config/sentry.js · server.js</div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">3.3</span> Metrics</h3>
+    <p>
+      Logs and errors are about individual events. Metrics are about trends and thresholds —
+      "p99 latency has crept up over the last hour," "error rate just doubled," "cache hit rate
+      dropped to 40%" — the kind of thing you'd put on a dashboard and set an alert on, not read
+      line by line.
+    </p>
+    <h4 class="block-label">Implementation</h4>
+    <p>
+      <code>prom-client</code>: default Node process metrics (CPU, memory, event-loop lag) plus
+      custom ones — <code>http_request_duration_seconds</code> (histogram),
+      <code>http_requests_total</code>, and <code>cache_hits_total</code> /
+      <code>cache_misses_total</code> derived straight from each response's own
+      <code>X-Cache</code> header. Every metric is labeled by route <em>pattern</em>
+      (<code>/api/venues/:id</code>) rather than the literal URL, which matters — labeling by the
+      literal URL would create one time series per distinct venue ID ever requested, an
+      unbounded-cardinality metric that would eventually overwhelm whatever's storing it.
+      Exposed at <code>GET /metrics</code> in Prometheus's text exposition format.
+    </p>
+    <div class="files">backend/src/config/metrics.js · GET /metrics</div>
+    <div class="tradeoff">
+      <span class="tag">Scope, stated honestly</span>
+      This produces real, correctly-formatted metrics, but there's no actual Prometheus server
+      scraping them or Grafana dashboard rendering them in this repo — that's always-on
+      infrastructure a solo project doesn't need running 24/7 just to exist. The next step is
+      pointing a Prometheus scrape config at <code>/metrics</code> and building a dashboard on
+      top; worth saying exactly that in an interview rather than implying more is running than
+      actually is.
+    </div>
+  </article>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section class="category">
+  <h2 class="category-title">4 · Architecture talking points</h2>
+  <p class="category-intro">
+    These are less "code I wrote" and more "decisions I can explain" — the kind of thing an
+    interviewer asks about specifically to see if you understand the <em>implications</em> of
+    what you built, not just that it runs.
+  </p>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">4.1</span> API versioning</h3>
+    <p>
+      Every route is reachable at both its original path and under <code>/api/v1/...</code> — the
+      same router instance mounted at two paths, so this added zero behavioral risk to what
+      already existed. <code>/api/health</code> and <code>/metrics</code> are deliberately left
+      unversioned, because they're operational endpoints, not product API surface that consumers
+      version against.
+    </p>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "A future breaking change gets its own v2 router mounted alongside v1, rather than changing
+      v1's behavior underneath whatever's still calling it. The versioning exists so that decision
+      is possible later, even though nothing has needed a v2 yet."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">4.2</span> Horizontal scaling</h3>
+    <p>
+      The backend holds no server-side session state — every request carries its own JWT, and the
+      only shared state introduced anywhere (cache, rate limit counters, revoked-token list) lives
+      in Redis, not in the Node process's memory. That's precisely what makes horizontal scaling
+      free: start a second instance behind a load balancer and it needs no coordination with the
+      first, because neither one is holding state the other doesn't have access to.
+    </p>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "If I'd put rate-limit counters in a plain in-memory Map instead of Redis, the app would
+      still work fine with one instance — but the moment you add a second instance behind a load
+      balancer, each one enforces its own separate limit, and the actual effective limit silently
+      doubles. Centralizing that state in Redis is what makes scaling out a config change instead
+      of a bug."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">4.3</span> CAP theorem / consistency tradeoffs</h3>
+    <p>
+      Introducing a cache is a small, concrete CAP-theorem decision, not just an abstract one:
+      it's an explicit choice of availability/latency over strict consistency, because a cached
+      response can be up to the TTL's length stale. Postgres itself remains the single source of
+      truth and is strongly consistent — the cache is a deliberately-lossy accelerator in front of
+      it, not a second source of truth.
+    </p>
+    <div class="talking-point">
+      <span class="tag">Say this</span>
+      "The 30-second TTL is the size of the consistency window I'm accepting in exchange for not
+      hitting Postgres on every request. If this were, say, an account balance instead of a venue
+      listing, I'd make a completely different call — probably no cache at all, or a much shorter
+      TTL plus synchronous invalidation on every possible write path."
+    </div>
+  </article>
+
+  <article class="concept">
+    <h3 class="concept-title"><span class="num">4.4</span> Fail open vs. fail closed, revisited</h3>
+    <p>
+      Worth restating at the architecture level, not just the Redis level: every dependency a
+      system relies on eventually fails, and "what happens when it does" is a decision, not an
+      accident. This project makes that decision differently for different dependencies —
+      cache-aside fails open (Postgres directly), rate limiting fails closed-ish (protects
+      against the abuse it exists to prevent), and Stripe/Google calls fail via a circuit breaker
+      that fails fast rather than either silently succeeding or hanging.
+    </p>
+  </article>
+</section>
+
+<!-- ================= CLOSING ================= -->
+<section class="category closing">
+  <h2 class="category-title">5 · How to talk about this in an interview</h2>
+  <p>
+    The honest framing: this started as a plain CRUD marketplace app (Angular + Express +
+    Postgres, JWT auth, Stripe payments) and had a deliberate second pass added specifically to
+    practice and demonstrate the concepts that come up in system design interviews — on real,
+    running code, not a diagram. That's a perfectly good thing to say out loud; it's more
+    credible than pretending every decision here was forced by real production traffic.
+  </p>
+  <p>What tends to land well in an interview, roughly in this order:</p>
+  <blockquote>
+    "I added Redis for three different things — caching, rate limiting, and JWT revocation — and
+    made each one degrade differently when Redis is unavailable, on purpose, because they're
+    protecting different things."
+  </blockquote>
+  <blockquote>
+    "The circuit breaker on Google's token verification needed an error filter, because most of
+    its failures are just normal invalid tokens, not Google being down — naively wrapping it
+    would've made the breaker trip from ordinary traffic."
+  </blockquote>
+  <blockquote>
+    "I kept the simple auto-create-on-boot schema setup for local dev, and added real versioned
+    migrations as the production-grade path, rather than ripping one out for the other."
+  </blockquote>
+  <p>
+    If asked "what would you do differently at real scale" — the honest answers are already
+    written into this document as tradeoffs: a sliding-window rate limiter instead of fixed-window,
+    versioned cache-key prefixes instead of pattern-scanning invalidation, an actual running
+    Prometheus + Grafana instance instead of just a correctly-formatted <code>/metrics</code>
+    endpoint. Naming the next step you'd take is usually more convincing than pretending the
+    current version is the final one.
+  </p>
+</section>
+
+<footer class="page-footer">MyWeddingDay · docs/system-design.html · generated 2026-09-18</footer>
+
+</body>
+</html>

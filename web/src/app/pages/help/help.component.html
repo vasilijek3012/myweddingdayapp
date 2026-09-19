@@ -1,0 +1,45 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ 'help.title' | translate }}</h1>
+    <p>{{ 'help.subtitle' | translate }}</p>
+  </div>
+
+  <div class="help-content">
+    <section class="faq-section">
+      <h2>{{ 'help.faqTitle' | translate }}</h2>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>{{ 'help.q1' | translate }}</h3>
+          <p>{{ 'help.a1' | translate }}</p>
+        </div>
+        <div class="faq-item">
+          <h3>{{ 'help.q2' | translate }}</h3>
+          <p>{{ 'help.a2' | translate }}</p>
+        </div>
+        <div class="faq-item">
+          <h3>{{ 'help.q3' | translate }}</h3>
+          <p>{{ 'help.a3' | translate }}</p>
+        </div>
+        <div class="faq-item">
+          <h3>{{ 'help.q4' | translate }}</h3>
+          <p>{{ 'help.a4' | translate }}</p>
+        </div>
+        <div class="faq-item">
+          <h3>{{ 'help.q5' | translate }}</h3>
+          <p>{{ 'help.a5' | translate }}</p>
+        </div>
+        <div class="faq-item">
+          <h3>{{ 'help.q6' | translate }}</h3>
+          <p [innerHTML]="'help.a6' | translate"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="help-contact">
+      <h2>{{ 'help.contactTitle' | translate }}</h2>
+      <p>{{ 'help.contactDesc' | translate }}</p>
+      <a href="mailto:support&#64;myweddingday.mk" class="btn btn-primary">{{ 'help.contactBtn' | translate }}</a>
+    </section>
+  </div>
+</div>

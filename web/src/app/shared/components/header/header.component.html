@@ -1,0 +1,40 @@
+<header class="header">
+  <div class="header-container">
+    <a routerLink="/" class="logo">
+      <span class="logo-icon">💍</span>
+      <span class="logo-text">MyWeddingDay</span>
+    </a>
+
+    <nav class="nav" [class.open]="menuOpen">
+      <a routerLink="/deals" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.deals' | translate }}</a>
+      <a routerLink="/weddings" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.weddings' | translate }}</a>
+      <a routerLink="/prewedding" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.prewedding' | translate }}</a>
+      <a routerLink="/bands" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.bands' | translate }}</a>
+      <a routerLink="/about" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.about' | translate }}</a>
+      <a routerLink="/help" routerLinkActive="active" (click)="menuOpen=false">{{ 'nav.help' | translate }}</a>
+    </nav>
+
+    <div class="auth-actions">
+      <ng-container *ngIf="auth.isLoggedIn; else guestActions">
+        <a routerLink="/dashboard" class="btn btn-outline" (click)="menuOpen=false">
+          {{ auth.currentUser?.full_name }}
+        </a>
+        <button class="btn btn-ghost" (click)="logout()">{{ 'auth.logout' | translate }}</button>
+      </ng-container>
+      <ng-template #guestActions>
+        <a routerLink="/login" class="btn btn-outline">{{ 'auth.login' | translate }}</a>
+        <a routerLink="/register" class="btn btn-primary">{{ 'auth.register' | translate }}</a>
+      </ng-template>
+
+      <button class="btn btn-lang" (click)="ts.toggle()" [title]="ts.lang === 'mk' ? 'Switch to English' : 'Префрли на македонски'">
+        {{ 'lang.toggle' | translate }}
+      </button>
+    </div>
+
+    <button class="hamburger" (click)="toggleMenu()" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+</header>

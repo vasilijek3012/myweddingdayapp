@@ -1,0 +1,500 @@
+<title>MyWeddingDay — Database Schema</title>
+<style>
+  :root {
+    --paper: #F4F6F8;
+    --surface: #FFFFFF;
+    --ink: #1B2A41;
+    --line: #2E5C8A;
+    --line-soft: #6C8FAE;
+    --gold: #A8792E;
+    --muted: #5B6B7D;
+    --grid-line: rgba(46,92,138,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16233A;
+      --surface: #1C2E4A;
+      --ink: #E8EEF5;
+      --line: #7FB3D9;
+      --line-soft: #4C6E8F;
+      --gold: #D4A94F;
+      --muted: #9FB0C4;
+      --grid-line: rgba(127,179,217,0.10);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16233A; --surface: #1C2E4A; --ink: #E8EEF5;
+    --line: #7FB3D9; --line-soft: #4C6E8F; --gold: #D4A94F; --muted: #9FB0C4;
+    --grid-line: rgba(127,179,217,0.10);
+  }
+  :root[data-theme="light"] {
+    --paper: #F4F6F8; --surface: #FFFFFF; --ink: #1B2A41;
+    --line: #2E5C8A; --line-soft: #6C8FAE; --gold: #A8792E; --muted: #5B6B7D;
+    --grid-line: rgba(46,92,138,0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  body {
+    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    padding: 0 0 64px;
+  }
+
+  a { color: var(--line); }
+
+  .sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 32px 0;
+  }
+
+  /* ---------- Title block ---------- */
+  .titleblock {
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 32px;
+    padding: 18px 24px;
+  }
+  .titleblock h1 {
+    grid-column: 1;
+    margin: 0;
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', 'Arial Narrow', sans-serif;
+    font-weight: 700;
+    font-size: 1.7rem;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  .titleblock .subtitle {
+    grid-column: 1;
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .titleblock .meta {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    border-left: 1px solid var(--grid-line);
+    padding-left: 24px;
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .titleblock .meta b { color: var(--ink); font-weight: 600; }
+
+  .intro {
+    max-width: 68ch;
+    margin: 20px 0 0;
+    color: var(--ink);
+  }
+  .intro strong { color: var(--line); }
+
+  /* ---------- Section labels ---------- */
+  h2.section {
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', 'Arial Narrow', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.8rem;
+    color: var(--line);
+    margin: 48px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--grid-line);
+  }
+
+  /* ---------- Legend ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+    background: var(--surface);
+    border: 1px solid var(--grid-line);
+    padding: 14px 20px;
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .legend svg { flex: none; }
+  .legend .chip {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border: 1px solid currentColor;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---------- Diagram ---------- */
+  .diagram-wrap {
+    background: var(--surface);
+    border: 1px solid var(--grid-line);
+    overflow-x: auto;
+  }
+  .diagram-wrap svg { display: block; min-width: 780px; width: 100%; height: auto; }
+  .node rect {
+    fill: var(--paper);
+    stroke: var(--line);
+    stroke-width: 1.4;
+  }
+  .node text {
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .node .kind {
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-weight: 400;
+    font-size: 9px;
+    fill: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .edge-required { stroke: var(--line); stroke-width: 1.5; fill: none; }
+  .edge-optional { stroke: var(--line-soft); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+
+  /* ---------- Schema cards ---------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--grid-line);
+    border-top: 3px solid var(--line);
+  }
+  .card header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--grid-line);
+  }
+  .card header h3 {
+    margin: 0;
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .card header .new {
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-size: 0.65rem;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 1px 5px;
+    letter-spacing: 0.06em;
+  }
+  .card .note {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 10px 16px 0;
+  }
+  table.attrs {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-size: 0.78rem;
+  }
+  table.attrs td {
+    padding: 5px 16px;
+    vertical-align: baseline;
+    white-space: nowrap;
+  }
+  table.attrs tr:not(:last-child) td { border-bottom: 1px dotted var(--grid-line); }
+  table.attrs td.badge { width: 34px; white-space: nowrap; }
+  table.attrs td.col { color: var(--ink); font-weight: 600; }
+  table.attrs td.type { color: var(--muted); white-space: normal; }
+  table.attrs td.type .ref { color: var(--line); }
+  .b {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 0 4px;
+    border: 1px solid currentColor;
+    letter-spacing: 0.03em;
+  }
+  .b-pk { color: var(--gold); }
+  .b-fk { color: var(--line); }
+  .b-uq { color: var(--muted); }
+
+  /* ---------- Decisions ---------- */
+  .decisions {
+    font-size: 0.92rem;
+  }
+  .decisions dt {
+    font-family: 'Bahnschrift', 'Segoe UI Semibold', sans-serif;
+    font-weight: 700;
+    color: var(--line);
+    margin-top: 14px;
+  }
+  .decisions dd {
+    margin: 3px 0 0;
+    color: var(--ink);
+  }
+
+  footer {
+    max-width: 1180px;
+    margin: 56px auto 0;
+    padding: 18px 32px 0;
+    border-top: 1px solid var(--grid-line);
+    font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+</style>
+
+<div class="sheet">
+
+  <div class="titleblock">
+    <h1>MyWeddingDay — Database Schema</h1>
+    <div class="subtitle">Entity-Relationship Diagram · Rev. 2026-08-19</div>
+    <div class="meta">
+      <div>ENGINE&nbsp; <b>PostgreSQL 16</b></div>
+      <div>DRIVER&nbsp; <b>pg (raw SQL, no ORM)</b></div>
+      <div>TABLES&nbsp; <b>7</b></div>
+      <div>STATUS&nbsp; <b>proposed — 3 new tables</b></div>
+    </div>
+  </div>
+
+  <p class="intro">
+    Reflects the decisions from this session: visitors stay account-less (only <strong>owner</strong>
+    and <strong>band</strong> roles authenticate); a dedicated <strong>Payments</strong> table replaces the
+    bare <code>is_active</code> flag for a real transaction history; listings support both a flat one-time
+    fee and a time-limited deal via a nullable <code>active_until</code>; photos move from a single
+    <code>image_url</code> column into a proper <strong>Images</strong> table; and <strong>Reviews</strong>
+    are moderated — nothing shows publicly until <code>is_approved</code> is set.
+  </p>
+
+  <h2 class="section">Notation</h2>
+  <div class="legend">
+    <div class="item">
+      <svg width="46" height="14"><line x1="2" y1="7" x2="44" y2="7" class="edge-required"/></svg>
+      required FK (<code>NOT NULL</code>)
+    </div>
+    <div class="item">
+      <svg width="46" height="14"><line x1="2" y1="7" x2="44" y2="7" class="edge-optional"/></svg>
+      exclusive FK (nullable — exactly one of two FKs set, enforced by <code>CHECK</code>)
+    </div>
+    <div class="item"><span class="chip" style="color:var(--gold)">PK</span> primary key</div>
+    <div class="item"><span class="chip" style="color:var(--line)">FK</span> foreign key</div>
+    <div class="item"><span class="chip" style="color:var(--muted)">UQ</span> unique constraint</div>
+  </div>
+
+  <h2 class="section">Diagram</h2>
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1040 430" xmlns="http://www.w3.org/2000/svg">
+      <!-- edges (drawn first, under nodes) -->
+      <path class="edge-required" d="M550,74 C550,120 195,120 195,160" />
+      <path class="edge-required" d="M550,74 C550,120 905,120 905,160" />
+      <path class="edge-required" d="M550,74 L550,320" />
+      <path class="edge-required" d="M195,214 C195,265 115,265 115,320" />
+      <path class="edge-optional" d="M270,187 C300,260 260,300 230,347" />
+      <path class="edge-optional" d="M830,187 C650,220 480,280 380,347" />
+      <path class="edge-optional" d="M195,214 C260,270 380,320 475,347" />
+      <path class="edge-optional" d="M905,214 C820,270 700,320 625,347" />
+      <path class="edge-optional" d="M270,187 C450,230 620,290 760,347" />
+      <path class="edge-optional" d="M905,214 C905,270 835,270 835,320" />
+
+      <!-- nodes -->
+      <g class="node">
+        <rect x="475" y="20" width="150" height="54" />
+        <text x="550" y="42">USERS</text>
+        <text class="kind" x="550" y="58">owner · band</text>
+      </g>
+      <g class="node">
+        <rect x="120" y="160" width="150" height="54" />
+        <text x="195" y="182">VENUES</text>
+        <text class="kind" x="195" y="198">wedding · prewedding</text>
+      </g>
+      <g class="node">
+        <rect x="830" y="160" width="150" height="54" />
+        <text x="905" y="182">BANDS</text>
+        <text class="kind" x="905" y="198">performers</text>
+      </g>
+      <g class="node">
+        <rect x="40" y="320" width="150" height="54" />
+        <text x="115" y="342">MEAL_PLANS</text>
+        <text class="kind" x="115" y="358">per venue</text>
+      </g>
+      <g class="node">
+        <rect x="230" y="320" width="150" height="54" />
+        <text x="305" y="342">IMAGES</text>
+        <text class="kind" x="305" y="358">new — gallery</text>
+      </g>
+      <g class="node">
+        <rect x="475" y="320" width="150" height="54" />
+        <text x="550" y="342">PAYMENTS</text>
+        <text class="kind" x="550" y="358">new — Stripe</text>
+      </g>
+      <g class="node">
+        <rect x="760" y="320" width="150" height="54" />
+        <text x="835" y="342">REVIEWS</text>
+        <text class="kind" x="835" y="358">new — moderated</text>
+      </g>
+    </svg>
+  </div>
+
+  <h2 class="section">Table reference</h2>
+  <div class="cards">
+
+    <div class="card">
+      <header><h3>Users</h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-uq">UQ</span></td><td class="col">email</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">password_hash</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">full_name</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">role</td><td class="type">VARCHAR(20) CHECK IN (owner, visitor, band)</td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+      </table>
+      <p class="note">'visitor' stays in the CHECK for compatibility but no account ever authenticates with it today — visitors browse /deals with no login.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Venues</h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">owner_id</td><td class="type"><span class="ref">→ Users.id</span> NOT NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"></td><td class="col">name</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">type</td><td class="type">VARCHAR(20) CHECK (wedding, prewedding)</td></tr>
+        <tr><td class="badge"></td><td class="col">description</td><td class="type">TEXT</td></tr>
+        <tr><td class="badge"></td><td class="col">address</td><td class="type">VARCHAR(500)</td></tr>
+        <tr><td class="badge"></td><td class="col">city</td><td class="type">VARCHAR(100)</td></tr>
+        <tr><td class="badge"></td><td class="col">latitude</td><td class="type">DOUBLE PRECISION</td></tr>
+        <tr><td class="badge"></td><td class="col">longitude</td><td class="type">DOUBLE PRECISION</td></tr>
+        <tr><td class="badge"></td><td class="col">capacity</td><td class="type">INTEGER</td></tr>
+        <tr><td class="badge"></td><td class="col">base_price</td><td class="type">DECIMAL(10,2)</td></tr>
+        <tr><td class="badge"></td><td class="col">phone</td><td class="type">VARCHAR(50)</td></tr>
+        <tr><td class="badge"></td><td class="col">website</td><td class="type">VARCHAR(255)</td></tr>
+        <tr><td class="badge"></td><td class="col">is_active</td><td class="type">BOOLEAN DEFAULT TRUE</td></tr>
+        <tr><td class="badge"></td><td class="col">plan</td><td class="type">VARCHAR(20) DEFAULT 'free'</td></tr>
+        <tr><td class="badge"></td><td class="col">featured_until</td><td class="type">TIMESTAMP NULL</td></tr>
+        <tr><td class="badge"><span class="b b-pk" style="color:var(--muted);border-color:var(--muted)">·</span></td><td class="col">active_until</td><td class="type">TIMESTAMP NULL <span style="color:var(--gold)">·new</span></td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+      </table>
+      <p class="note">latitude/longitude are geocoded server-side from the typed address, not hand-placed. image_url is dropped — see Images. active_until stays NULL for a flat one-time listing, or gets set for a time-limited deal; same column serves either policy.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Bands</h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">owner_id</td><td class="type"><span class="ref">→ Users.id</span> NOT NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"></td><td class="col">name</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">genre</td><td class="type">VARCHAR(100)</td></tr>
+        <tr><td class="badge"></td><td class="col">description</td><td class="type">TEXT</td></tr>
+        <tr><td class="badge"></td><td class="col">city</td><td class="type">VARCHAR(100)</td></tr>
+        <tr><td class="badge"></td><td class="col">price_per_event</td><td class="type">DECIMAL(10,2)</td></tr>
+        <tr><td class="badge"></td><td class="col">phone</td><td class="type">VARCHAR(50)</td></tr>
+        <tr><td class="badge"></td><td class="col">website</td><td class="type">VARCHAR(255)</td></tr>
+        <tr><td class="badge"></td><td class="col">is_active</td><td class="type">BOOLEAN DEFAULT TRUE</td></tr>
+        <tr><td class="badge"></td><td class="col">plan</td><td class="type">VARCHAR(20) DEFAULT 'free'</td></tr>
+        <tr><td class="badge"></td><td class="col">featured_until</td><td class="type">TIMESTAMP NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">active_until</td><td class="type">TIMESTAMP NULL <span style="color:var(--gold)">·new</span></td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+      </table>
+      <p class="note">No latitude/longitude, by decision — bands travel to the event rather than hosting at a fixed venue, so a map pin doesn't apply. City text stays the only location field.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Meal_Plans</h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">venue_id</td><td class="type"><span class="ref">→ Venues.id</span> NOT NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"></td><td class="col">name</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">description</td><td class="type">TEXT</td></tr>
+        <tr><td class="badge"></td><td class="col">price_per_person</td><td class="type">DECIMAL(10,2) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">includes_drinks</td><td class="type">BOOLEAN DEFAULT FALSE</td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+      </table>
+      <p class="note">Unchanged from the current schema. Venues only — bands have no meal plans.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Images <span class="new">new</span></h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">venue_id</td><td class="type"><span class="ref">→ Venues.id</span> NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">band_id</td><td class="type"><span class="ref">→ Bands.id</span> NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"></td><td class="col">url</td><td class="type">VARCHAR(500) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">sort_order</td><td class="type">INTEGER DEFAULT 0</td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+      </table>
+      <p class="note">CHECK (venue_id IS NOT NULL) != (band_id IS NOT NULL) — every row belongs to exactly one listing. Files live in a storage bucket (S3/Cloudinary/local /uploads); this table stores the URL only, never the bytes.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Payments <span class="new">new</span></h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">user_id</td><td class="type"><span class="ref">→ Users.id</span> NOT NULL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">venue_id</td><td class="type"><span class="ref">→ Venues.id</span> NULL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">band_id</td><td class="type"><span class="ref">→ Bands.id</span> NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">stripe_session_id</td><td class="type">VARCHAR(255)</td></tr>
+        <tr><td class="badge"></td><td class="col">stripe_payment_intent_id</td><td class="type">VARCHAR(255)</td></tr>
+        <tr><td class="badge"></td><td class="col">amount</td><td class="type">DECIMAL(10,2) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">currency</td><td class="type">VARCHAR(3) DEFAULT 'usd'</td></tr>
+        <tr><td class="badge"></td><td class="col">status</td><td class="type">VARCHAR(20) CHECK (pending, completed, failed, refunded)</td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+        <tr><td class="badge"></td><td class="col">completed_at</td><td class="type">TIMESTAMP NULL</td></tr>
+      </table>
+      <p class="note">Same exclusive-FK pattern as Images. Written on Checkout Session creation (status='pending'), flipped to 'completed' by the Stripe webhook — which is also what should set the listing's is_active/active_until. Still gated behind the open Stripe decisions in CLAUDE.md.</p>
+    </div>
+
+    <div class="card">
+      <header><h3>Reviews <span class="new">new</span></h3></header>
+      <table class="attrs">
+        <tr><td class="badge"><span class="b b-pk">PK</span></td><td class="col">id</td><td class="type">SERIAL</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">venue_id</td><td class="type"><span class="ref">→ Venues.id</span> NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"><span class="b b-fk">FK</span></td><td class="col">band_id</td><td class="type"><span class="ref">→ Bands.id</span> NULL, ON DELETE CASCADE</td></tr>
+        <tr><td class="badge"></td><td class="col">reviewer_name</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">reviewer_email</td><td class="type">VARCHAR(255) NOT NULL</td></tr>
+        <tr><td class="badge"></td><td class="col">rating</td><td class="type">INTEGER CHECK (1–5)</td></tr>
+        <tr><td class="badge"></td><td class="col">comment</td><td class="type">TEXT</td></tr>
+        <tr><td class="badge"></td><td class="col">is_approved</td><td class="type">BOOLEAN NOT NULL DEFAULT FALSE</td></tr>
+        <tr><td class="badge"></td><td class="col">created_at</td><td class="type">TIMESTAMP DEFAULT NOW()</td></tr>
+        <tr><td class="badge"></td><td class="col">approved_at</td><td class="type">TIMESTAMP NULL</td></tr>
+      </table>
+      <p class="note">No user_id — reviewers have no account, so name/email are captured free-text on the row. Defaults to unapproved; a review only appears publicly once a moderator (owner/admin) flips is_approved, which stamps approved_at.</p>
+    </div>
+
+  </div>
+
+  <h2 class="section">Open questions this doesn't resolve</h2>
+  <dl class="decisions">
+    <dt>Who moderates reviews?</dt>
+    <dd>Reviews need an approver. Today there's no admin role in the Users CHECK — either add one, or let the listing's own owner/band approve reviews of their own listing (weaker, since it lets vendors hide criticism).</dd>
+    <dt>Stripe checkout/webhook routes</dt>
+    <dd>Still explicitly deferred per CLAUDE.md — Payments' shape above is ready for it, but wiring stays out of scope until asked.</dd>
+    <dt>Expiry job for time-limited deals</dt>
+    <dd>If active_until is used, something needs to flip is_active=false once it passes — a cron/scheduled task, not a DB trigger, to stay consistent with "no stored procedures."</dd>
+  </dl>
+
+</div>
+
+<footer>MyWeddingDay · docs/er-diagram.html · generated 2026-08-19</footer>

@@ -1,0 +1,42 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ 'bands.title' | translate }}</h1>
+    <p>{{ 'bands.subtitle' | translate }}</p>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      [placeholder]="'common.search' | translate"
+      [value]="searchTerm"
+      (input)="onSearch($any($event.target).value)"
+      class="search-input"
+    />
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && bands.length === 0" class="empty-state">
+    <p>{{ 'bands.noResults' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && bands.length > 0" class="venues-grid">
+    <a *ngFor="let band of bands" [routerLink]="['/band', band.id]" class="venue-card">
+      <div class="venue-image">
+        <img [src]="band.image_url || 'assets/placeholder.jpg'" [alt]="band.name" />
+        <span *ngIf="band.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+      </div>
+      <div class="venue-info">
+        <h3>{{ band.name }}</h3>
+        <p class="venue-city">📍 {{ band.city }}</p>
+        <p *ngIf="band.genre" class="venue-capacity">🎵 {{ band.genre }}</p>
+        <p *ngIf="band.price_per_event" class="venue-price">{{ 'common.from' | translate:{ n: band.price_per_event } }}</p>
+        <p class="venue-description">{{ (band.description || '') | slice:0:100 }}{{ (band.description || '').length > 100 ? '...' : '' }}</p>
+      </div>
+    </a>
+  </div>
+</div>

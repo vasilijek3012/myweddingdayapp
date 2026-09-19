@@ -1,0 +1,33 @@
+<section class="hero">
+  <div class="hero-content">
+    <h1>{{ 'home.hero.title' | translate }}</h1>
+    <p>{{ 'home.hero.subtitle' | translate }}</p>
+    <div class="hero-actions">
+      <a routerLink="/deals" class="btn btn-primary btn-lg">{{ 'nav.deals' | translate }}</a>
+      <a routerLink="/deals" [queryParams]="{ type: 'band' }" class="btn btn-outline btn-lg">{{ 'nav.bands' | translate }}</a>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🏛️</div>
+      <h3>{{ 'home.feature1.title' | translate }}</h3>
+      <p>{{ 'home.feature1.desc' | translate }}</p>
+      <a routerLink="/deals" [queryParams]="{ type: 'wedding' }" class="feature-link">{{ 'home.feature1.link' | translate }}</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🥂</div>
+      <h3>{{ 'home.feature2.title' | translate }}</h3>
+      <p>{{ 'home.feature2.desc' | translate }}</p>
+      <a routerLink="/deals" [queryParams]="{ type: 'prewedding' }" class="feature-link">{{ 'home.feature2.link' | translate }}</a>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎸</div>
+      <h3>{{ 'home.feature3.title' | translate }}</h3>
+      <p>{{ 'home.feature3.desc' | translate }}</p>
+      <a routerLink="/deals" [queryParams]="{ type: 'band' }" class="feature-link">{{ 'home.feature3.link' | translate }}</a>
+    </div>
+  </div>
+</section>

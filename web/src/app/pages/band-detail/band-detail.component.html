@@ -1,0 +1,66 @@
+<div class="page-container">
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ 'band.notFound' | translate }}</p>
+    <a routerLink="/" class="btn btn-outline">{{ 'common.backHome' | translate }}</a>
+  </div>
+
+  <ng-container *ngIf="!loading && band">
+    <button class="back-btn" onclick="history.back()">{{ 'common.back' | translate }}</button>
+
+    <div class="venue-detail">
+      <div class="venue-hero">
+        <img [src]="band.image_url || 'assets/placeholder.jpg'" [alt]="band.name" class="venue-hero-img" />
+        <div class="venue-hero-overlay">
+          <span class="venue-type-badge" *ngIf="band.genre">{{ band.genre }}</span>
+          <span *ngIf="band.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+          <h1>{{ band.name }}</h1>
+          <p class="venue-city-detail">📍 {{ band.city }}</p>
+        </div>
+      </div>
+
+      <div class="venue-body">
+        <div class="venue-main">
+          <section class="info-section">
+            <h2>{{ 'band.about' | translate }}</h2>
+            <p>{{ band.description }}</p>
+          </section>
+
+          <app-reviews-section [bandId]="band.id"></app-reviews-section>
+        </div>
+
+        <aside class="venue-sidebar">
+          <div class="sidebar-card">
+            <h3>Инфо / Info</h3>
+            <ul class="info-list">
+              <li *ngIf="band.genre">
+                <span>🎵 {{ 'band.genre' | translate }}</span>
+                <strong>{{ band.genre }}</strong>
+              </li>
+              <li *ngIf="band.price_per_event">
+                <span>💰 {{ 'band.pricePerEvent' | translate }}</span>
+                <strong>{{ band.price_per_event | number:'1.0-0' }} MKD</strong>
+              </li>
+              <li *ngIf="band.phone">
+                <span>📞 {{ 'venue.phone' | translate }}</span>
+                <strong>{{ band.phone }}</strong>
+              </li>
+              <li *ngIf="band.website">
+                <span>🌐 {{ 'venue.website' | translate }}</span>
+                <a [href]="band.website" target="_blank" rel="noopener">{{ 'venue.visitSite' | translate }}</a>
+              </li>
+              <li>
+                <span>👤 {{ 'band.contact' | translate }}</span>
+                <strong>{{ band.owner_name }}</strong>
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,231 @@
+<div class="page-container">
+  <div class="dashboard-header">
+    <div>
+      <h1>{{ (isBand ? 'dashboard.bandTitle' : 'dashboard.title') | translate }}</h1>
+      <p>{{ 'dashboard.welcome' | translate:{ name: auth.currentUser?.full_name || '' } }}</p>
+    </div>
+    <button *ngIf="!isBand" class="btn btn-primary" (click)="openCreateForm()">{{ 'dashboard.addVenue' | translate }}</button>
+    <button *ngIf="isBand && !band" class="btn btn-primary" (click)="openCreateForm()">{{ 'dashboard.addBand' | translate }}</button>
+  </div>
+
+  <div *ngIf="formSuccess" class="alert alert-success">{{ formSuccess }}</div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
+  <!-- VENUE OWNER VIEW -->
+  <ng-container *ngIf="!isBand">
+    <div *ngIf="!loading && venues.length === 0 && !showListingForm" class="empty-state">
+      <p>{{ 'dashboard.noVenues' | translate }}</p>
+      <button class="btn btn-primary" (click)="openCreateForm()">{{ 'dashboard.addFirst' | translate }}</button>
+    </div>
+
+    <div *ngIf="!loading && venues.length > 0" class="dashboard-venues">
+      <div *ngFor="let venue of venues" class="dashboard-venue-card">
+        <div class="dvc-info">
+          <h3>{{ venue.name }}</h3>
+          <span class="venue-type-badge small">
+            {{ (venue.type === 'wedding' ? 'dashboard.typeWedding' : 'dashboard.typePrewedding') | translate }}
+          </span>
+          <span *ngIf="venue.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+          <p>📍 {{ venue.city }} | 👥 {{ venue.capacity }} | 💰 {{ venue.base_price | number:'1.0-0' }} MKD</p>
+        </div>
+        <div class="dvc-actions">
+          <button class="btn btn-sm btn-outline" (click)="openMealPlanForm(venue.id)">{{ 'dashboard.addMenu' | translate }}</button>
+          <button class="btn btn-sm btn-outline" (click)="openEditVenueForm(venue)">{{ 'dashboard.edit' | translate }}</button>
+          <button
+            *ngIf="!(venue.featured_until | isFeatured)"
+            class="btn btn-sm btn-gold"
+            [disabled]="featuringId === venue.id"
+            (click)="featureVenue(venue)">
+            {{ (featuringId === venue.id ? 'dashboard.redirecting' : 'dashboard.featureListing') | translate }}
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="deleteVenue(venue.id)">{{ 'dashboard.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- BAND VIEW -->
+  <ng-container *ngIf="isBand">
+    <div *ngIf="!loading && !band && !showListingForm" class="empty-state">
+      <p>{{ 'dashboard.noBand' | translate }}</p>
+      <button class="btn btn-primary" (click)="openCreateForm()">{{ 'dashboard.addFirstBand' | translate }}</button>
+    </div>
+
+    <div *ngIf="!loading && band" class="dashboard-venues">
+      <div class="dashboard-venue-card">
+        <div class="dvc-info">
+          <h3>{{ band.name }}</h3>
+          <span class="venue-type-badge small" *ngIf="band.genre">{{ band.genre }}</span>
+          <span *ngIf="band.featured_until | isFeatured" class="featured-badge">★ {{ 'common.featured' | translate }}</span>
+          <p>📍 {{ band.city }} <span *ngIf="band.price_per_event">| 💰 {{ band.price_per_event | number:'1.0-0' }} MKD</span></p>
+        </div>
+        <div class="dvc-actions">
+          <button class="btn btn-sm btn-outline" (click)="openEditBandForm()">{{ 'dashboard.edit' | translate }}</button>
+          <button
+            *ngIf="!(band.featured_until | isFeatured)"
+            class="btn btn-sm btn-gold"
+            [disabled]="featuringId === band.id"
+            (click)="featureBand(band)">
+            {{ (featuringId === band.id ? 'dashboard.redirecting' : 'dashboard.featureListing') | translate }}
+          </button>
+          <button class="btn btn-sm btn-danger" (click)="deleteBand()">{{ 'dashboard.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Unified Listing Form Modal: wedding hall / bachelor(ette) venue / band -->
+  <div *ngIf="showListingForm" class="modal-overlay" (click)="closeListingForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ (editingId ? 'dashboard.editListing' : 'dashboard.newListing') | translate }}</h2>
+        <button class="modal-close" (click)="closeListingForm()">✕</button>
+      </div>
+      <div *ngIf="formError" class="alert alert-error">{{ formError }}</div>
+      <form [formGroup]="listingForm" (ngSubmit)="submitListing()" class="modal-form">
+        <div class="form-group" *ngIf="!isBand">
+          <label>{{ 'dashboard.type' | translate }}</label>
+          <div class="role-selector">
+            <label class="role-option" [class.selected]="listingForm.get('listing_type')?.value === 'wedding'">
+              <input type="radio" formControlName="listing_type" value="wedding" />
+              <span class="role-icon">🏛️</span>
+              <span class="role-label">{{ 'dashboard.typeWedding' | translate }}</span>
+            </label>
+            <label class="role-option" [class.selected]="listingForm.get('listing_type')?.value === 'prewedding'">
+              <input type="radio" formControlName="listing_type" value="prewedding" />
+              <span class="role-icon">🥂</span>
+              <span class="role-label">{{ 'dashboard.typePrewedding' | translate }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ (listingForm.get('listing_type')?.value === 'band' ? 'dashboard.bandName' : 'dashboard.venueName') | translate }}</label>
+            <input type="text" formControlName="name" />
+          </div>
+          <div class="form-group" *ngIf="listingForm.get('listing_type')?.value === 'band'">
+            <label>{{ 'dashboard.bandGenre' | translate }}</label>
+            <input type="text" formControlName="genre" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>{{ 'dashboard.description' | translate }}</label>
+          <textarea formControlName="description" rows="3"></textarea>
+        </div>
+
+        <div class="form-row" *ngIf="listingForm.get('listing_type')?.value !== 'band'">
+          <div class="form-group">
+            <label>{{ 'dashboard.address' | translate }}</label>
+            <input type="text" formControlName="address" />
+          </div>
+          <div class="form-group">
+            <label>{{ 'dashboard.city' | translate }}</label>
+            <input type="text" formControlName="city" />
+          </div>
+        </div>
+        <div class="form-group" *ngIf="listingForm.get('listing_type')?.value === 'band'">
+          <label>{{ 'dashboard.city' | translate }}</label>
+          <input type="text" formControlName="city" />
+        </div>
+
+        <div class="form-row" *ngIf="listingForm.get('listing_type')?.value !== 'band'">
+          <div class="form-group">
+            <label>{{ 'dashboard.capacity' | translate }}</label>
+            <input type="number" formControlName="capacity" />
+          </div>
+          <div class="form-group">
+            <label>{{ 'dashboard.basePrice' | translate }}</label>
+            <input type="number" formControlName="base_price" />
+          </div>
+        </div>
+        <div class="form-group" *ngIf="listingForm.get('listing_type')?.value === 'band'">
+          <label>{{ 'dashboard.pricePerEvent' | translate }}</label>
+          <input type="number" formControlName="price_per_event" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ 'dashboard.phone' | translate }}</label>
+            <input type="text" formControlName="phone" />
+          </div>
+          <div class="form-group">
+            <label>{{ 'dashboard.website' | translate }}</label>
+            <input type="text" formControlName="website" />
+          </div>
+        </div>
+
+        <div class="form-row" *ngIf="listingForm.get('listing_type')?.value !== 'band'">
+          <div class="form-group">
+            <label>{{ 'dashboard.latitude' | translate }}</label>
+            <input type="number" step="any" formControlName="latitude" />
+          </div>
+          <div class="form-group">
+            <label>{{ 'dashboard.longitude' | translate }}</label>
+            <input type="number" step="any" formControlName="longitude" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>{{ 'dashboard.imageUrl' | translate }}</label>
+          <div class="photo-upload-row">
+            <img *ngIf="listingForm.get('image_url')?.value" [src]="listingForm.get('image_url')?.value" class="photo-preview" alt="" />
+            <div class="photo-upload-controls">
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" [disabled]="uploadingPhoto" (change)="onPhotoSelected($event)" />
+              <span *ngIf="uploadingPhoto" class="muted">{{ 'dashboard.uploadingPhoto' | translate }}</span>
+              <span *ngIf="uploadError" class="field-error">{{ uploadError }}</span>
+            </div>
+          </div>
+          <input type="text" formControlName="image_url" [placeholder]="'dashboard.imageUrlPlaceholder' | translate" />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" (click)="closeListingForm()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="btn btn-primary">
+            {{ (editingId ? 'common.save' : 'dashboard.submitListing') | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Meal Plan Modal -->
+  <div *ngIf="showMealPlanForm" class="modal-overlay" (click)="closeMealPlanForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ 'dashboard.addMealPlanTitle' | translate }}</h2>
+        <button class="modal-close" (click)="closeMealPlanForm()">✕</button>
+      </div>
+      <div *ngIf="formError" class="alert alert-error">{{ formError }}</div>
+      <form [formGroup]="mealPlanForm" (ngSubmit)="submitMealPlan()" class="modal-form">
+        <div class="form-group">
+          <label>{{ 'dashboard.menuName' | translate }}</label>
+          <input type="text" formControlName="name" />
+        </div>
+        <div class="form-group">
+          <label>{{ 'dashboard.menuDesc' | translate }}</label>
+          <textarea formControlName="description" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>{{ 'dashboard.pricePerPerson' | translate }}</label>
+          <input type="number" formControlName="price_per_person" />
+        </div>
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="includes_drinks" />
+            {{ 'dashboard.includesDrinks' | translate }}
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" (click)="closeMealPlanForm()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="btn btn-primary">{{ 'dashboard.addMenuBtn' | translate }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
