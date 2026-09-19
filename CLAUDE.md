@@ -83,10 +83,13 @@ The app originally used SQL Server via the `mssql` npm package. Switched to Post
   don't repeat a DB migration like this once the app has live users/listings without a proper
   migration plan.
 
-**Hosting recommendation:** Angular build → Vercel/Netlify/Cloudflare Pages (static, free tier).
-Express API → Railway or Render (both offer a Postgres add-on in the same project, simplest
-single-place deploy). Alternative: Supabase for the DB if you later want to drop the custom
-JWT auth/file upload in favor of its built-in auth + storage — not necessary now.
+**Hosting decision (2026-09-19): everything on Railway**, one project, two services — chosen
+over the earlier Vercel/Netlify-for-frontend split to keep a single platform to manage. Express
+API + Postgres + Redis addons on one service; the Angular build served as static files by
+`serve` (Vercel's static-file-server package, unrelated to Vercel hosting itself) on a second
+service. See "Railway deployment" below for the actual setup. (Alternative still worth knowing:
+Supabase for the DB if you ever want to drop the custom JWT auth/file upload in favor of its
+built-in auth + storage — not necessary now.)
 
 ## First-time setup
 
@@ -465,21 +468,46 @@ after.
 - Added an `engines.node` field to `backend/package.json` (`>=22.0.0`) so Railway's build
   matches the Node version this was actually built and tested against.
 
-**Still needed from you before/during the actual Railway deploy** (can't be done from here —
-requires your Railway account):
-1. Create the Railway project, attach a Postgres addon and a Redis addon (or point `REDIS_URL`
-   at any reachable Redis — Railway's own addon is simplest), and attach a Volume for
-   `UPLOAD_DIR` (see "Photo upload" section above).
-2. Set every env var for real in Railway's dashboard: `JWT_SECRET` (a real random secret, not
-   the placeholder), `DB_SSL=true`, `FRONTEND_URL`, `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/
-   `STRIPE_PRICE_ID` if using the paid-feature flow, `GOOGLE_CLIENT_ID` if using Google Sign-In
-   (plus adding the deployed frontend origin as an Authorized JavaScript origin in Google Cloud
-   Console), `SENTRY_DSN` if you want error tracking live.
-3. Update `web/src/environments/environment.prod.ts`'s `apiUrl` to the real Railway backend URL
-   once you have it, then rebuild/redeploy the frontend.
-4. Run `npm run migrate:up` against the fresh Railway Postgres instead of letting
-   `initializeDatabase()` auto-create tables, if you want the versioned-migration history to be
-   the actual source of truth in production (optional — auto-create still works fine too).
+## Railway deployment (both services, added 2026-09-19)
+
+Repo is on GitHub at `vasilijek3012/myweddingdayapp` (public), `main` branch. One Railway
+project, two services, both built from this same repo via Nixpacks (no Dockerfile needed):
+
+**Backend service** — Settings → Source → Root Directory: `backend`. Env vars:
+```
+DATABASE_URL=${{Postgres.DATABASE_URL}}   # reference to the Postgres addon in the same project
+REDIS_URL=${{Redis.REDIS_URL}}            # reference to the Redis addon in the same project
+JWT_SECRET=<a real random secret — see below, never the .env placeholder>
+NODE_ENV=production
+LOG_LEVEL=info
+UPLOAD_DIR=/data/uploads                  # matches the Volume mount path below
+FRONTEND_URL=<the frontend service's Railway domain, once it exists>
+```
+Plus `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PRICE_ID` and `GOOGLE_CLIENT_ID` if
+using those flows (both stay inert/return 503 if unset — see their sections above), and
+`SENTRY_DSN` if you want error tracking live. Also needs a **Volume** mounted at `/data/uploads`
+(Settings → Volumes) so uploaded photos survive redeploys — see "Photo upload" above.
+Generate a real `JWT_SECRET` with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+— never reuse the placeholder from `backend/.env`.
+
+**Frontend service** — second service, same repo, Root Directory: `web`. No special env vars
+needed; Nixpacks auto-detects `npm run build` then `npm start`. `web/package.json`'s `start`
+script is `serve -s dist/web/browser` (the `serve` package — Vercel's static-file-server
+library, unrelated to Vercel hosting; `-s` rewrites unmatched routes to `index.html` so Angular
+Router's client-side routes like `/dashboard` don't 404 on a hard refresh). `serve` reads
+`PORT` from the environment automatically — Railway sets it, nothing to configure. Verified
+locally end-to-end (root route, a client-side route, and a static asset all return 200) before
+this was written.
+
+**After both are deployed:**
+1. Generate a public domain for each service (Settings → Networking → Generate Domain).
+2. Set the backend's `FRONTEND_URL` to the frontend's real domain (fixes CORS).
+3. Update `web/src/environments/environment.prod.ts`'s `apiUrl` to the backend's real domain +
+   `/api`, then push — Railway auto-redeploys the frontend on every push to `main`.
+4. Optionally run `npm run migrate:up` (from `backend/scripts/migrate.js`, needs `DATABASE_URL`
+   in the shell — Railway's CLI (`railway run npm run migrate:up`) is the easiest way to get
+   that without hand-copying it) against the fresh Postgres instead of relying on
+   `initializeDatabase()`'s auto-create-on-boot. Not required — auto-create works fine too.
 
 ## Known quirks in this repo
 
