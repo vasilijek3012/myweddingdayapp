@@ -447,9 +447,20 @@ const TRANSLATIONS: Record<Lang, Record<string, string>> = {
   },
 };
 
+const LANG_STORAGE_KEY = 'lang';
+
+function loadStoredLang(): Lang {
+  try {
+    const stored = localStorage.getItem(LANG_STORAGE_KEY);
+    return stored === 'en' || stored === 'mk' ? stored : 'mk';
+  } catch {
+    return 'mk';
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
-  private langSubject = new BehaviorSubject<Lang>('mk');
+  private langSubject = new BehaviorSubject<Lang>(loadStoredLang());
   lang$ = this.langSubject.asObservable();
 
   get lang(): Lang {
@@ -457,7 +468,14 @@ export class TranslationService {
   }
 
   toggle(): void {
-    this.langSubject.next(this.lang === 'mk' ? 'en' : 'mk');
+    const next = this.lang === 'mk' ? 'en' : 'mk';
+    this.langSubject.next(next);
+    try {
+      localStorage.setItem(LANG_STORAGE_KEY, next);
+    } catch {
+      // localStorage can throw in private browsing / blocked storage — language just
+      // won't persist across reloads in that case, not worth failing the toggle over.
+    }
   }
 
   t(key: string, params?: Record<string, string | number>): string {
